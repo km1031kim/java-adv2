@@ -1,15 +1,17 @@
 package io.member;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Member {
+public class Member implements Serializable {
+
 
     private String id;
     private String name;
     private Integer age;
 
-    public Member() {
-    }
+    public Member(){
+}
 
     public Member(String id, String name, Integer age) {
         this.id = id;
