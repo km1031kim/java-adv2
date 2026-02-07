@@ -26,60 +26,48 @@ public class MyChatClient {
              Scanner scanner = new Scanner(System.in)) {
 
             // 입장 하면, 그때부터
-            System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + DELIMITER + "유저명");
+            System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + DELIMITER + "유저명 ");
             String enterMessage = scanner.nextLine();
 
             while (!enterMessage.startsWith(START_MESSAGE_FORMAT + DELIMITER)) {
-                System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + DELIMITER + "유저명");
+                System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + DELIMITER + "유저명 ");
                 enterMessage = scanner.nextLine();
             }
 
             // 1. 입장
             String username = enterMessage.split(DELIMITER)[1];
 
-            Thread receiver = new Thread(new Receiver(socket, input));
+            Thread receiver = new Thread(new Receiver(input));
             receiver.start();
 
-            output.writeUTF(username + " 님이 입장하셨습니다.");
+            System.out.println("ㅇㅇㅇ");
+
+           // output.writeUTF(username + " 님이 입장하셨습니다.");
 
         }
     }
 
     static class Receiver implements Runnable {
 
-        // socket Input
-
-        private final Socket socket;
         private final DataInputStream input;
 
-        public Receiver(Socket socket, DataInputStream input) {
-            this.socket = socket;
+        public Receiver(DataInputStream input) {
             this.input = input;
         }
 
         @Override
         public void run() {
             // 터미널 출력
-            try {
-                while (true) {
-                    String input = this.input.readUTF();
-                    System.out.println("message : " + input);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } finally {
+            System.out.println("receiver thread start");
 
+            while (true) {
+                String message = null;
                 try {
-                    input.close();
+                    message = input.readUTF();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                System.out.println("message : " + message);
             }
         }
     }
