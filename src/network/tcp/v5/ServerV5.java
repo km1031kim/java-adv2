@@ -22,7 +22,6 @@ public class ServerV5 {
 
         // 클라이언트 접속 대기 -> 소켓 생성
         // accept 호출 -> OS backlog queue 에서 TCP 연결 정보 기반으로 소켓 생성
-
         while (true) {
             Socket socket = serverSocket.accept(); // 블로킹
             log("소켓 연결 : " + socket);

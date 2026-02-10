@@ -1,73 +1,102 @@
 package network.test;
 
-import UTIL.MyLogger;
-import network.tcp.v6.SessionManagerV6;
-
 import java.io.*;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 import static UTIL.MyLogger.*;
+import static network.test.ChatFormatter.*;
 
 public class MyChatClient {
-    private static final String START_MESSAGE_FORMAT = "/join";
-    private static final String SEND_MESSAGE_FORMAT = "/message";
 
-    private static final String EXIT_MESSAGE_FORMAT = "/exit";
-    private static final String DELIMITER = "|";
 
     public static void main(String[] args) throws IOException {
         log("클라이언트 시작");
 
-
-        try (Socket socket = new Socket("localhost", 12345);
+        Socket socket = new Socket("localhost", 12345);
+        try (socket;
              DataInputStream input = new DataInputStream(socket.getInputStream());
              DataOutputStream output = new DataOutputStream(socket.getOutputStream());
              Scanner scanner = new Scanner(System.in)) {
 
             // 입장 하면, 그때부터
-            System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + DELIMITER + "유저명 ");
+            System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + "유저명 ");
             String enterMessage = scanner.nextLine();
 
-            while (!enterMessage.startsWith(START_MESSAGE_FORMAT + DELIMITER)) {
-                System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + DELIMITER + "유저명 ");
+            while (!enterMessage.startsWith(START_MESSAGE_FORMAT)) {
+                System.out.print("채팅방 입장 방법: " + START_MESSAGE_FORMAT + "유저명 ");
                 enterMessage = scanner.nextLine();
             }
 
             // 1. 입장
-            String username = enterMessage.split(DELIMITER)[1];
+            String username = enterMessage.split(Pattern.quote(DELIMITER))[1];
+            helpMessage();
 
-            Thread receiver = new Thread(new Receiver(input));
+            // 2. 리시버 시작
+            Thread receiver = new Thread(new Receiver(input), username + "_receiver");
             receiver.start();
 
-            System.out.println("ㅇㅇㅇ");
+            // 3. 입장 및 유저명 전송
+            output.writeUTF(username);
 
-           // output.writeUTF(username + " 님이 입장하셨습니다.");
+            while (true) {
+                String toSend = scanner.nextLine();
 
+                if (toSend.startsWith(SEND_MESSAGE_FORMAT) ||
+                    toSend.startsWith(CHANGE_USERNAME_FORMAT) ||
+                    toSend.equals(PRINT_MEMBERS)) {
+                    output.writeUTF(toSend);
+                    continue;
+                }
+
+                if (toSend.equals(HELP_MESSAGE)) {
+                    helpMessage();
+                    continue;
+                }
+
+                if (toSend.equals(EXIT_MESSAGE)) {
+                    System.out.println("클라이언트를 종료합니다.");
+                    output.writeUTF(toSend);
+                    break;
+                }
+                System.out.println("사용방법 출력 : " + HELP_MESSAGE);
+            }
+        } catch (ConnectException e) {
+            log("서버 기동중 아님 : " + e);
+        } catch (IOException e) {
+            log("클라이언트 종료 : " + e);
+            throw new IOException(e);
         }
+        log("socket.isClosed() : " + socket.isClosed());
+    }
+
+    private static void helpMessage() {
+        System.out.println("메세지 보내기 : " + SEND_MESSAGE_FORMAT + "보낼 메세지");
+        System.out.println("채팅방 멤버 리스트 출력하기 : " + PRINT_MEMBERS);
+        System.out.println("이름 변경하기 : " + CHANGE_USERNAME_FORMAT + "변경할 이름");
+        System.out.println("메세지 보내기 : " + SEND_MESSAGE_FORMAT + "보낼 메세지");
+        System.out.println("도움말 : " + HELP_MESSAGE);
+        System.out.println("나가기 : " + EXIT_MESSAGE);
     }
 
     static class Receiver implements Runnable {
 
         private final DataInputStream input;
-
         public Receiver(DataInputStream input) {
             this.input = input;
         }
 
         @Override
         public void run() {
-            // 터미널 출력
-            System.out.println("receiver thread start");
-
-            while (true) {
-                String message = null;
-                try {
-                    message = input.readUTF();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            try {
+                while (true) {
+                    String messageFromSerer = input.readUTF();
+                    System.out.println(messageFromSerer);
                 }
-                System.out.println("message : " + message);
+            } catch (IOException e) {
+                log("Exception 발생. 메세지 리시버 스레드 종료. : " + e);
             }
         }
     }

@@ -1,9 +1,11 @@
 package network.test;
 
-import network.tcp.v6.SessionV6;
+import UTIL.MyLogger;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static UTIL.MyLogger.*;
 
 public class SessionManager {
 
@@ -23,9 +25,25 @@ public class SessionManager {
         }
     }
 
+
+    public void changeUsername(Session session, String oldUsername, String newUsername) {
+        for (Session s : sessions) {
+            if (s == session && s.getUsername().equals(oldUsername)) {
+                s.setUsername(newUsername);
+            }
+        }
+    }
+
+
     public void closeAll() {
+        log("세션매니저 close 호출");
         for (Session session : sessions) {
             session.close();
         }
+        sessions.clear();
+    }
+
+    public List<String> getAllUsername() {
+        return sessions.stream().map(Session::getUsername).toList();
     }
 }
