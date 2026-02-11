@@ -31,12 +31,11 @@ public class MyChatClient {
             }
 
             // 1. 입장
-            String username = enterMessage.split(Pattern.quote(DELIMITER))[1];
+            String username = ChatFormatter.getMessage(enterMessage);
             helpMessage();
 
             // 2. 리시버 시작
-            Thread receiver = new Thread(new Receiver(input), username + "_receiver");
-            receiver.start();
+            initReceiver(input, username);
 
             // 3. 입장 및 유저명 전송
             output.writeUTF(username);
@@ -61,6 +60,7 @@ public class MyChatClient {
                     output.writeUTF(toSend);
                     break;
                 }
+
                 System.out.println("사용방법 출력 : " + HELP_MESSAGE);
             }
         } catch (ConnectException e) {
@@ -70,6 +70,11 @@ public class MyChatClient {
             throw new IOException(e);
         }
         log("socket.isClosed() : " + socket.isClosed());
+    }
+
+    private static void initReceiver(DataInputStream input, String username) {
+        Thread receiver = new Thread(new Receiver(input), username + "_receiver");
+        receiver.start();
     }
 
     private static void helpMessage() {

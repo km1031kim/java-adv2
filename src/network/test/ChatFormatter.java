@@ -15,4 +15,6 @@ public abstract class ChatFormatter {
         return clientMessage.split(Pattern.quote(DELIMITER))[1];
     }
 
+
+
 }

@@ -8,7 +8,7 @@ import java.util.List;
 import static UTIL.MyLogger.*;
 
 public class SessionManager {
-
+//
     private List<Session> sessions = new ArrayList<>();
 
     public void add(Session session) {
