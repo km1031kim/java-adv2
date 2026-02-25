@@ -25,6 +25,7 @@ public class HttpRequest {
         // GET /search?q=hello HTTP/1.1
         // Host: localhost:12345
         String requestLine = reader.readLine();
+        System.out.println("requestLine = " + requestLine);
         if (requestLine == null) {
             throw new IOException("EOF: No request line received");
         }
