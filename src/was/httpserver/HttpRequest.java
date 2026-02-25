@@ -1,5 +1,7 @@
 package was.httpserver;
 
+import annotation.mapping.SimpleMapping;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URLDecoder;
