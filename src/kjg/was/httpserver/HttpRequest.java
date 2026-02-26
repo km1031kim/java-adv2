@@ -54,6 +54,7 @@ public class HttpRequest {
         String line;
         while (!(line = reader.readLine()).isEmpty()) {
             String[] headerParts = line.split(":");
+            // trim()으로 공백 제거
             headers.put(headerParts[0].trim(), headerParts[1].trim());
         }
     }

@@ -1,5 +1,6 @@
 package kjg.was.httpserver;
 
+import UTIL.MyLogger;
 import kjg.was.httpserver.servlet.InternalErrorServlet;
 import kjg.was.httpserver.servlet.NotFoundServlet;
 import was.httpserver.servlet.PageNotFoundException;
@@ -28,16 +29,15 @@ public class ServletManager {
 
         try {
             HttpServlet servlet = servletMap.getOrDefault(path, defaultServlet);
-
+            MyLogger.log(servlet);
             if (servlet == null) {
                 throw new PageNotFoundException("request url = " + request.getPath());
             }
-
             servlet.service(request, response);
         } catch (PageNotFoundException e) {
             e.printStackTrace();
             notFoundServlet.service(request,response);
-        } catch (IOException e) {
+        } catch (Exception e) {
             internalErrorServlet.service(request, response);
         }
     }
