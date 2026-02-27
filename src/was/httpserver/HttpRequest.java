@@ -1,5 +1,6 @@
 package was.httpserver;
 
+import UTIL.MyLogger;
 import annotation.mapping.SimpleMapping;
 
 import java.io.BufferedReader;
@@ -8,6 +9,7 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import static UTIL.MyLogger.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class HttpRequest {
@@ -21,6 +23,7 @@ public class HttpRequest {
     public HttpRequest(BufferedReader reader) throws IOException {
         parseRequestLine(reader);
         parseHeaders(reader);
+        parseBody(reader);
     }
 
     private void parseRequestLine(BufferedReader reader) throws IOException {
@@ -48,6 +51,7 @@ public class HttpRequest {
     }
 
     // %코딩 될 수 있음. -> 디코딩 필요
+
     private void parseQueryParameters(String queryString) {
         for (String param : queryString.split("&")) {
             String[] keyValue = param.split("=");
@@ -56,13 +60,33 @@ public class HttpRequest {
             queryParameters.put(key, value);
         }
     }
-
     private void parseHeaders(BufferedReader reader) throws IOException {
         String line;
         while (!(line = reader.readLine()).isEmpty()) {
             String[] headerParts = line.split(":");
             // trim()으로 공백 제거
             headers.put(headerParts[0].trim(), headerParts[1].trim());
+        }
+    }
+
+    // 추가
+    private void parseBody(BufferedReader reader) throws IOException {
+        if (!headers.containsKey("Content-Length")) {
+            return;
+        }
+
+        int contentLength = Integer.parseInt(headers.get("Content-Length"));
+        char[] bodyChars = new char[contentLength];
+        int read = reader.read(bodyChars);
+        if (read != contentLength) {
+            throw new IOException("Fail to read entire body, Expected : " + contentLength + " byte, but read " + read);
+        }
+        String body = new String(bodyChars);
+        log("HTTP Message Body : " + body);
+
+        String contentType = headers.get("Content-Type");
+        if ("application/x-www-form-urlencoded".equals(contentType)) {
+            parseQueryParameters(body); // 같은 방식으로 처리
         }
     }
 
